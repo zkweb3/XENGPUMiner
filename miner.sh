@@ -12,6 +12,7 @@ opencl=false
 silence=false
 gpus=0
 cpu=false
+account=""
 
 function display_help() {
     echo "Usage: $0 [OPTIONS]"
@@ -19,6 +20,7 @@ function display_help() {
     echo "Options:"
     echo "  -g, --gpus <num>              Set the number of GPUs to use (Default: 1)"
     echo "  -c, --cpu <num>               Running 1 miner in CPU mode (Default: off)"
+    echo "  -a, --account <address>       Account address to receive mining rewards"
     echo "  -d, --devfee, --dev-fee-on    Enable dev fee (Default: off)"
     echo "  -o, --opencl                  Enable OpenCL computation (Default: off)"
     echo "  -s, --silence                 Run in silence/background mode (Default: off)"
@@ -39,16 +41,24 @@ for arg in "$@"; do
         "--silence") set -- "$@" "-s" ;;
         "--gpus") set -- "$@" "-g" ;;
         "--cpu") set -- "$@" "-c" ;;
+        "--account") set -- "$@" "-a" ;;
         "--logging-on") set -- "$@" "-l" ;;
          *) set -- "$@" "$arg"
     esac
 done
 
 # Now, process short options with getopts
-while getopts "g:c:ldosh" opt; do
+while getopts "g:c:a:ldosh" opt; do
     case "$opt" in
-    g) gpus="$OPTARG" ;;
+    g) 
+		gpus="$OPTARG"
+		echo "gpus=$OPTARG"
+		;;
     c) cpu="$OPTARG" ;;
+    a)
+		account="$OPTARG"
+		echo "account=$OPTARG"
+		;;
     d) dev_fee_on=true ;;
     o) opencl=true ;;
     s) silence=true ;;
@@ -91,7 +101,7 @@ done
 if [ $gpus -gt 0 ]; then
     echo "Running $gpus miners in GPU mode..."
 fi
-command="python3 miner.py"
+command="python3 miner.py --gpu=true --account=$account"
 if $dev_fee_on; then
     command+=" --dev-fee-on"
 fi
